@@ -7,11 +7,15 @@ import android.annotation.SuppressLint;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.provider.Settings;
 import android.util.Log;
 import android.widget.Button;
 
 import android.Manifest;
+
+import com.microsoft.sqlserver.jdbc.SQLServerConnection;
+import com.microsoft.sqlserver.jdbc.SQLServerDataSource;
 
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -33,6 +37,10 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
+import java.sql.Connection;
+import java.sql.Driver;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Properties;
 import java.util.UUID;
@@ -66,7 +74,8 @@ public class MainActivity extends AppCompatActivity {
 
         button.setOnClickListener(view ->{
             executor.execute(()->{
-                callWebService.deviceLogin(callWebService.getDeviceName(), uuid1);
+//                callWebService.deviceLogin(callWebService.getDeviceName(), uuid1);
+                callWebService.getConnection();
             });
         });
     }
@@ -115,22 +124,35 @@ public class MainActivity extends AppCompatActivity {
                 DataOutputStream wr = new DataOutputStream(connection.getOutputStream());
                 wr.writeBytes(xml);
                 wr.flush();
+//                String responseStatus = connection.getResponseMessage();
+//                Log.e("responseStatus", responseStatus);
+//                BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+//                String inputLine;
+//                StringBuffer response = new StringBuffer();
+//
+//
+//                while((inputLine = br.readLine()) != null){
+//                    response.append(inputLine);
+//                }
+//                br.close();
+//
+//                Log.e("", String.valueOf(response));
+
+                SAXParserFactory factory = SAXParserFactory.newInstance();
+                SAXParser saxParser = factory.newSAXParser();
+                XMLParserHandler xmlParserHandler = new XMLParserHandler();
+
+                saxParser.parse(connection.getInputStream(), xmlParserHandler);
+
+                LogonDeviceResult logonDeviceResult = xmlParserHandler.getLogonDeviceResult();
+                DataServiceDescriptor dataServiceDescriptor = xmlParserHandler.getDataServiceDescriptor();
+
+                Log.e("", logonDeviceResult.deviceId + "  " + logonDeviceResult.applicationTypeId + "  " + logonDeviceResult.applicationRuntimeId + "  " + logonDeviceResult.possibleLogonTypes + "  " + logonDeviceResult.deviceLogonResult);
+                Log.e("", dataServiceDescriptor.dataServiceType + "  " + dataServiceDescriptor.dataServiceConnectionDescriptor + "  " + dataServiceDescriptor.order);
+
                 wr.close();
-                String responseStatus = connection.getResponseMessage();
-                Log.e("responseStatus", responseStatus);
-                BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                String inputLine;
-                StringBuffer response = new StringBuffer();
 
-
-                while((inputLine = br.readLine()) != null){
-                    response.append(inputLine);
-                }
-                br.close();
-
-                Log.e("", String.valueOf(response));
-
-
+                getConnection();
 
             } catch (MalformedURLException e) {
                 e.printStackTrace();
@@ -138,10 +160,65 @@ public class MainActivity extends AppCompatActivity {
                 e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
+            } catch (ParserConfigurationException e) {
+                e.printStackTrace();
+            } catch (SAXException e) {
+                e.printStackTrace();
             }
         }
 
+        private void getConnection() {
+            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+            StrictMode.setThreadPolicy(policy);
 
+            Connection connection;
+
+            String _serverName = "DEATHSTAR";
+            String _portNumber = "4241";
+            String _databaseName = "MobileFlex";
+            String _userId = "sa";
+            String _password = "Gtr7jv8fh2";
+
+            try{
+//                Class.forName("net.sourceforge.jtds.jdbc.Driver");
+                StringBuilder sb = new StringBuilder();
+
+//                String connectionURL = sb.append("jdbc:jtds:sqlserver://172.16.1.5:1433;").toString();
+
+                Log.e("q", "connection előtt!!");
+
+//                connection = DriverManager.getConnection(connectionURL, _userId, _password);
+
+//                SQLServerDataSource sqlServerDataSource = new SQLServerDataSource();
+//                sqlServerDataSource.setDatabaseName("MobilFlex");
+//                sqlServerDataSource.setServerName("172.16.1.5");
+//                sqlServerDataSource.setPortNumber(1433);
+//                sqlServerDataSource.setUser("sa");
+//                sqlServerDataSource.setPassword("Gtr7jv8fh2");
+
+//                SQLServerConnection con = (SQLServerConnection) sqlServerDataSource.getConnection();
+
+
+                Driver d = (Driver) Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver").newInstance();
+                String connectionUrl = "jdbc:sqlserver://;server=172.16.1.5;databaseName=master;loginTimeout=300;";
+                Properties properties = new Properties();
+                properties.setProperty("user", "sa");
+                properties.setProperty("password", "Gtr7jv8fh2");
+                Connection con = d.connect(connectionUrl, properties);
+
+                Log.e("q", "connection után!!");
+            }
+            catch (SQLException e) {
+                e.printStackTrace();
+            }
+            catch (ClassNotFoundException e){
+                e.printStackTrace();
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (InstantiationException e) {
+                e.printStackTrace();
+            }
+        }
 
         public String createPostBody(String deviceId, String applicationId){
 
