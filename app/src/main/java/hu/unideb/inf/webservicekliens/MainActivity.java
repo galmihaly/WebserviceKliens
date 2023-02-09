@@ -1,36 +1,21 @@
 package hu.unideb.inf.webservicekliens;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-
-import android.annotation.SuppressLint;
+import android.Manifest;
 import android.content.pm.PackageManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.StrictMode;
-import android.provider.Settings;
 import android.util.Log;
 import android.widget.Button;
 
-import android.Manifest;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
-import com.microsoft.sqlserver.jdbc.SQLServerConnection;
 import com.microsoft.sqlserver.jdbc.SQLServerDataSource;
 
-import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
-import org.xml.sax.helpers.DefaultHandler;
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-import org.xmlpull.v1.XmlPullParserFactory;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
-import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
@@ -41,18 +26,17 @@ import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Properties;
-import java.util.UUID;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
-import javax.net.ssl.HttpsURLConnection;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
+import javax.naming.Referenceable;
 
 public class MainActivity extends AppCompatActivity {
+
 
     private Executor executor;
     private Button button;
@@ -124,19 +108,6 @@ public class MainActivity extends AppCompatActivity {
                 DataOutputStream wr = new DataOutputStream(connection.getOutputStream());
                 wr.writeBytes(xml);
                 wr.flush();
-//                String responseStatus = connection.getResponseMessage();
-//                Log.e("responseStatus", responseStatus);
-//                BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-//                String inputLine;
-//                StringBuffer response = new StringBuffer();
-//
-//
-//                while((inputLine = br.readLine()) != null){
-//                    response.append(inputLine);
-//                }
-//                br.close();
-//
-//                Log.e("", String.valueOf(response));
 
                 SAXParserFactory factory = SAXParserFactory.newInstance();
                 SAXParser saxParser = factory.newSAXParser();
@@ -180,38 +151,23 @@ public class MainActivity extends AppCompatActivity {
             String _password = "Gtr7jv8fh2";
 
             try{
-//                Class.forName("net.sourceforge.jtds.jdbc.Driver");
-                StringBuilder sb = new StringBuilder();
+                Class.forName("net.sourceforge.jtds.jdbc.Driver").newInstance();
+                String connectionUrl = "jdbc:jtds:sqlserver://server.logcontrol.hu:4241;user=Galmihaly;password=Gm2022!!!;databaseName=GalMihalyTest;";
+                Connection con = DriverManager.getConnection(connectionUrl);
 
-//                String connectionURL = sb.append("jdbc:jtds:sqlserver://172.16.1.5:1433;").toString();
+//                SQLServerDataSource ds = new SQLServerDataSource();
 
-                Log.e("q", "connection előtt!!");
+//                ds.setServerName("localhost\\sqlexpress");
+////                ds.setPortNumber(Integer.parseInt("1433"));
+//                ds.setDatabaseName("test");
+//                ds.setEncrypt(false);
 
-//                connection = DriverManager.getConnection(connectionURL, _userId, _password);
-
-//                SQLServerDataSource sqlServerDataSource = new SQLServerDataSource();
-//                sqlServerDataSource.setDatabaseName("MobilFlex");
-//                sqlServerDataSource.setServerName("172.16.1.5");
-//                sqlServerDataSource.setPortNumber(1433);
-//                sqlServerDataSource.setUser("sa");
-//                sqlServerDataSource.setPassword("Gtr7jv8fh2");
-
-//                SQLServerConnection con = (SQLServerConnection) sqlServerDataSource.getConnection();
-
-
-                Driver d = (Driver) Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver").newInstance();
-                String connectionUrl = "jdbc:sqlserver://;server=172.16.1.5;databaseName=master;loginTimeout=300;";
-                Properties properties = new Properties();
-                properties.setProperty("user", "sa");
-                properties.setProperty("password", "Gtr7jv8fh2");
-                Connection con = d.connect(connectionUrl, properties);
-
+//                Connection con = ds.getConnection();
                 Log.e("q", "connection után!!");
             }
             catch (SQLException e) {
                 e.printStackTrace();
-            }
-            catch (ClassNotFoundException e){
+            } catch (ClassNotFoundException e) {
                 e.printStackTrace();
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
